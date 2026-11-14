@@ -206,8 +206,9 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
 .margin-cards.three{ grid-template-columns:repeat(3,1fr); }
 .margin-cards.four{ grid-template-columns:repeat(2,1fr); }
 .margin-cards.five{ grid-template-columns:repeat(2,1fr); }
-@media (max-width:480px){ .margin-cards.three, .margin-cards.four, .margin-cards.five{ grid-template-columns:1fr; } }
-@media (min-width:640px){ .margin-cards.four{ grid-template-columns:repeat(4,1fr); } .margin-cards.five{ grid-template-columns:repeat(3,1fr); } }
+.margin-cards.six{ grid-template-columns:repeat(2,1fr); }
+@media (max-width:480px){ .margin-cards.three, .margin-cards.four, .margin-cards.five, .margin-cards.six{ grid-template-columns:1fr; } }
+@media (min-width:640px){ .margin-cards.four{ grid-template-columns:repeat(4,1fr); } .margin-cards.five, .margin-cards.six{ grid-template-columns:repeat(3,1fr); } }
 .margin-card{
   border-radius:9px; padding:14px 12px 12px;
   border:1px solid var(--border);
@@ -246,48 +247,41 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
 .foot-note b{ color:var(--text); }
 
 .small-hint{ font-size:11px; color:var(--text-muted); margin-top:-6px; margin-bottom:10px; }
+.small-hint.check-ok{ color:var(--good); }
+.small-hint.check-bad{ color:var(--danger); font-weight:600; }
 
-.autobtn{
-  width:100%;
-  padding:9px 10px;
-  border-radius:7px;
-  border:1px solid var(--accent);
-  background:var(--accent-soft);
-  color:var(--accent-strong);
-  font-family:'IBM Plex Sans', sans-serif;
-  font-size:13px;
-  font-weight:600;
-  cursor:pointer;
-  margin-bottom:8px;
-  transition: background .12s, transform .05s;
+.packing-count input{
+  background:#fff7df;
+  border-color:#e7b84f;
+  color:#a85a00;
+  font-weight:700;
 }
-.autobtn:hover{ background:var(--accent); color:#fff; }
-.autobtn:active{ transform: scale(0.99); }
+.packing-grid{ overflow-x:auto; margin:4px 0 12px; }
+.packing-table{
+  width:100%; min-width:620px; border-collapse:collapse;
+  font-size:11.5px; font-family:'IBM Plex Mono',monospace;
+}
+.packing-table th{
+  padding:7px 6px; background:var(--surface-2); color:var(--text-muted);
+  font-family:'IBM Plex Sans',sans-serif; font-weight:600; text-align:center;
+  border:1px solid var(--border);
+}
+.packing-table td{ padding:7px 6px; text-align:center; border:1px solid var(--border); }
+.packing-table td:first-child{ font-family:'IBM Plex Sans',sans-serif; font-weight:600; text-align:left; }
+.packing-table .method{ background:#fff7df; color:#a85a00; font-weight:700; }
 
-.tier-table{
-  width:100%;
-  border-collapse:collapse;
-  margin:4px 0 12px;
-  font-size:11.5px;
-  font-family:'IBM Plex Mono',monospace;
+.charge-compare{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:10px 0; }
+.charge-card{
+  border:1px solid var(--border); border-radius:8px; padding:10px;
+  background:var(--surface-2); min-width:0;
 }
-.tier-table th{
-  text-align:left;
-  font-family:'IBM Plex Sans',sans-serif;
-  font-weight:600;
-  color:var(--text-muted);
-  padding:4px 6px;
-  border-bottom:1px solid var(--border);
-  font-size:11px;
-}
-.tier-table td{
-  padding:5px 6px;
-  border-bottom:1px dashed var(--border);
-  vertical-align:top;
-}
-.tier-table tr:nth-child(1) td:first-child{ color:var(--good); font-weight:600; }
-.tier-table tr:nth-child(2) td:first-child{ color:var(--warn); font-weight:600; }
-.tier-table tr:nth-child(3) td:first-child{ color:#c2740c; font-weight:600; }
+.charge-card.selected{ border-color:var(--accent); background:var(--accent-soft); box-shadow:0 0 0 1px var(--accent-soft); }
+.charge-card .k{ font-size:11px; color:var(--text-muted); margin-bottom:5px; }
+.charge-card .v{ font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:700; font-variant-numeric:tabular-nums; }
+.charge-card .lb{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-muted); margin-top:2px; font-variant-numeric:tabular-nums; }
+.charge-card .note{ font-size:10px; color:var(--text-muted); margin-top:4px; }
+.charge-card .basis{ display:inline-block; margin-top:5px; padding:2px 6px; border-radius:5px; background:#fff; color:var(--accent-strong); font-size:10px; font-weight:700; }
+@media (max-width:520px){ .charge-compare{ grid-template-columns:1fr; } }
 </style>
 
 <div class="wrap">
@@ -322,6 +316,21 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
           <div><label>产品重量 <span class="unit" id="unitWt">g</span></label><input id="wt" type="number" value="1200" step="1"></div>
           <div><label>US 售价 <span class="unit">$</span></label><input id="price" type="number" value="45.99" step="0.01"></div>
         </div>
+        <div class="charge-compare">
+          <div class="charge-card">
+            <div class="k">单品实重</div><div class="v" id="unitActualWeight">—</div>
+            <div class="note" id="unitActualWeightKg">产品包装后的实际重量</div>
+          </div>
+          <div class="charge-card">
+            <div class="k">单品体积重（÷139）</div><div class="v" id="unitDimWeight">—</div>
+            <div class="note" id="unitDimWeightKg">英寸长×宽×高÷139</div>
+          </div>
+          <div class="charge-card selected">
+            <div class="k">FBA计费重</div><div class="v" id="unitBillWeight">—</div>
+            <div class="basis" id="unitWeightBasis">—</div>
+          </div>
+        </div>
+        <div class="small-hint">FBA先根据单品包装尺寸和重量确定Size Tier，再按该Size Tier的规则选择实重或体积重计算配送费。</div>
       </div>
 
       <div class="card">
@@ -365,28 +374,38 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
 
       <div class="card">
         <h2>头程运费 <span class="n">freight</span></h2>
-        <label>外箱自动推荐（按上方"产品尺寸与重量"反推，默认贴近工厂实际打包习惯）</label>
+        <label>装箱方法（手动填写三个方向的数量）</label>
         <div class="field-row">
-          <div><label>最长边上限 <span class="unit">cm</span></label><input id="maxCtnLong" type="number" value="91.44" step="0.5"></div>
-          <div><label>次长/最短边上限 <span class="unit">cm</span></label><input id="maxCtnSide" type="number" value="63.5" step="0.5"></div>
-          <div><label>单箱重量上限 <span class="unit">kg</span></label><input id="maxCtnWeight" type="number" value="15" step="0.5"></div>
+          <div class="packing-count"><label>长度方向 <span class="unit">个</span></label><input id="packCountL" type="number" value="1" min="1" step="1"></div>
+          <div class="packing-count"><label>宽度方向 <span class="unit">个</span></label><input id="packCountW" type="number" value="2" min="1" step="1"></div>
+          <div class="packing-count"><label>高度方向 <span class="unit">层</span></label><input id="packCountH" type="number" value="3" min="1" step="1"></div>
         </div>
+        <div class="small-hint">总装箱数＝长度方向数量 × 宽度方向数量 × 高度层数。修改产品尺寸、重量或装箱方法后，整箱数据会自动重算。</div>
         <div class="field-row">
-          <div><label>软包裹压缩系数（地毯/包类等可压缩材质，1=不压缩，越小装得越多）</label><input id="compressRatio" type="number" value="1" min="0.3" max="1" step="0.05"></div>
-          <div></div>
-        </div>
-        <button type="button" id="autoBoxBtn" class="autobtn">按包装尺寸自动计算外箱尺寸 + 最大装箱数</button>
-        <div class="small-hint" id="autoBoxHint">尺寸上限=Amazon FBA官方硬性限制(36×25×25in/91.44×63.5×63.5cm，来源：Seller Central卖家论坛)，按货代经验分三级：≤60cm最优/60-63.5cm可接受/63.5-91.44cm合规非优先。<b>重量上限默认15kg（而非Amazon允许的22.68kg）</b>——用6款真实产品外箱反算验证过：排列组合数学完全吻合工厂实际箱规，但如果按22.68kg硬上限"能装多少装多少"，算出的数量会比工厂实际多装2-3倍，因为工厂通常按单人搬运习惯控制在15kg左右，不会撑到Amazon上限。<b>软包裹压缩系数</b>：用25款真实产品数据反算发现，刚性长方体网格算法对地毯/包类等可压缩软包装会低估装箱数（实测最多差1倍），因为工厂会把相邻层交错挤压嵌套。默认1=按刚性长方体估算（偏保守），如果你的产品是可压缩软包装，可按实际箱规反推系数（如实际比估算多装1倍，填0.5）后再用。理论值，实际箱规仍以工厂/供应商确认为准。</div>
-        <div id="tierCompareTable"></div>
-        <div class="field-row">
-          <div><label>外箱长 <span class="unit">cm</span></label><input id="boxL" type="number" value="60" step="0.1"></div>
-          <div><label>外箱宽 <span class="unit">cm</span></label><input id="boxW" type="number" value="50" step="0.1"></div>
-          <div><label>外箱高 <span class="unit">cm</span></label><input id="boxH" type="number" value="44" step="0.1"></div>
+          <div><label>外箱及填充物重量 <span class="unit">kg</span></label><input id="cartonTareKg" type="number" value="1.3" min="0" step="0.1"></div>
+          <div><label>长度包装余量 <span class="unit">cm</span></label><input id="packMarginL" type="number" value="2" min="0" step="0.5"></div>
+          <div><label>宽度包装余量 <span class="unit">cm</span></label><input id="packMarginW" type="number" value="2.5" min="0" step="0.5"></div>
         </div>
         <div class="field-row two">
-          <div><label>每箱装箱数 <span class="unit">pcs</span></label><input id="ctnQty" type="number" value="14" step="1"></div>
-          <div><label>头程渠道（主视图）</label>
+          <div><label>高度包装余量 <span class="unit">cm</span></label><input id="packMarginH" type="number" value="6" min="0" step="0.5"></div>
+          <div><label>计划单箱毛重上限 <span class="unit">kg，最高22.68</span></label><input id="maxCtnWeight" type="number" value="22.68" min="0.1" max="22.68" step="0.1"></div>
+        </div>
+
+        <div class="packing-grid">
+          <table class="packing-table">
+            <thead><tr><th>项目</th><th>长度</th><th>宽度</th><th>高度</th><th>重量 / 数量</th><th>长+围长</th></tr></thead>
+            <tbody>
+              <tr><td>单个产品</td><td id="pSingleL">—</td><td id="pSingleW">—</td><td id="pSingleH">—</td><td id="pSingleWeight">—</td><td>—</td></tr>
+              <tr><td>整箱产品</td><td id="pCartonL">—</td><td id="pCartonW">—</td><td id="pCartonH">—</td><td id="pCartonWeight">—</td><td id="pCartonRule">—</td></tr>
+              <tr><td>装箱方法</td><td class="method" id="pMethodL">—</td><td class="method" id="pMethodW">—</td><td class="method" id="pMethodH">—</td><td id="pPackQty">—</td><td>自动计算</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="field-row one">
+          <div><label>头程渠道（决定体积重除数和计费重）</label>
             <select id="freightMode">
+              <option value="default_sea" selected>默认普船海派 · ¥12.5/kg</option>
               <option value="sea">普船海派 · ¥8.2/kg（大森林·美东经济卡派）</option>
               <option value="fastsea">快船 · ¥13.6/kg（大森林·华南ZIM美东卡派）</option>
               <option value="express">快递 · ¥97/kg（燕文头程专线，顶档价）</option>
@@ -395,6 +414,24 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
             </select>
           </div>
         </div>
+        <div class="charge-compare">
+          <div class="charge-card">
+            <div class="k">整箱实重</div><div class="v" id="chargeActualKg">—</div>
+            <div class="lb" id="chargeActualLb">—</div>
+            <div class="note">商品总重＋外箱及填充物</div>
+          </div>
+          <div class="charge-card">
+            <div class="k" id="chargeVolumeLabel">体积重</div><div class="v" id="chargeVolumeKg">—</div>
+            <div class="lb" id="chargeVolumeLb">—</div>
+            <div class="note">外箱三边各加1cm后计算</div>
+          </div>
+          <div class="charge-card selected">
+            <div class="k">最终计费重</div><div class="v" id="chargeBillableKg">—</div>
+            <div class="lb" id="chargeBillableLb">—</div>
+            <div class="basis" id="chargeBasis">—</div>
+          </div>
+        </div>
+        <div class="small-hint" id="cartonCheck">—</div>
       </div>
     </div>
 
@@ -415,7 +452,12 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
         <div class="stat-line"><span class="k">采购成本（折USD）</span><span class="v" id="rCogsUsd">$0.00</span></div>
         <div class="stat-line"><span class="k">头程运费（折USD）</span><span class="v" id="rFreightUsd">$0.00</span></div>
 
-        <div class="margin-cards five">
+        <div class="margin-cards six">
+          <div class="margin-card" id="card-default_sea">
+            <div class="label">默认普船海派</div>
+            <div class="pct" id="pct-default_sea">0.0%</div>
+            <div class="amt" id="amt-default_sea">净利润 $0.00 / 件</div>
+          </div>
           <div class="margin-card" id="card-sea">
             <div class="label">普船海派</div>
             <div class="pct" id="pct-sea">0.0%</div>
@@ -444,7 +486,7 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
         </div>
 
         <div class="foot-note">
-          数据口径：<b>2026-01-15</b>起生效的美国站FBA费率（非旺季区间），已按<b>1st-zzz.github.io</b>与<b>ricky940910.github.io</b>两个独立工具三产品交叉验证一致。入库配置费按东西部区间中点估算；Extra-large尺寸入库费官方数据缺失，按0处理。<b>公司自有-快船海卡/普船海派两个AGL渠道由亚马逊全球物流统一入仓，不产生独立的入库配置服务费</b>，其余渠道(普船海派/快船/快递)均需计入。仓储基础费率为淡旺季加权年度均值。<b>Coupon费用率</b>按比例折减到手售价后再计佣金；<b>预计退货率</b>按整单利润的期望损失折减（简化估算，未拆分退货处理费/FBA退款手续费等细项）。
+          数据口径：<b>2026-01-15</b>起生效的美国站FBA费率（非旺季区间），已按<b>1st-zzz.github.io</b>与<b>ricky940910.github.io</b>两个独立工具三产品交叉验证一致。入库配置费按东西部区间中点估算；Extra-large尺寸入库费官方数据缺失，按0处理。<b>公司自有-快船海卡/普船海派两个AGL渠道由亚马逊全球物流统一入仓，不产生独立的入库配置服务费</b>，其余渠道(默认普船海派/普船海派/快船/快递)均需计入。仓储基础费率为淡旺季加权年度均值。<b>Coupon费用率</b>按比例折减到手售价后再计佣金；<b>预计退货率</b>按整单利润的期望损失折减（简化估算，未拆分退货处理费/FBA退款手续费等细项）。
         </div>
       </div>
     </div>
@@ -549,7 +591,7 @@ const REFERRAL_CATS = [
   ["其他/默认(Everything Else)", 0.15],
 ];
 
-const FREIGHT_RATE = { sea: 8.2, fastsea: 13.6, express: 97, own: 8, own_fast: 14 }; // RMB/kg -- own: 公司自有·AGL-美西快船海卡；own_fast: 公司自有·美西普船海派(2026年时效表)
+const FREIGHT_RATE = { default_sea: 12.5, sea: 8.2, fastsea: 13.6, express: 97, own: 8, own_fast: 14 }; // RMB/kg -- default_sea: 默认普船海派；own: 公司自有·AGL-美西快船海卡；own_fast: 公司自有·美西普船海派(2026年时效表)
 
 // ---- populate referral dropdown ----
 const refSel = document.getElementById('referralCat');
@@ -627,110 +669,13 @@ function getWeightG(){
 
 function ceilStep(x, step){ return Math.ceil(Math.round((x/step)*1e9)/1e9); }
 
-// ---- auto-suggest outer carton dims + max qty from a single unit's packed dims ----
-// Amazon's hard FBA limit (91.44cm long edge / 63.5cm the other two / 22.68kg) is only
-// the outer ceiling. In real freight-forwarder practice the *usable* long edge is tiered:
-//   green  <=60cm    : preferred -- avoids oversize/handling surcharges from most carriers
-//   yellow 60-63.5cm : acceptable, AWD-compatible cube
-//   orange 63.5-91.44cm : FBA-legal but not preferred (UPS/FedEx additional-handling risk)
-//   red    >91.44cm  : not usable for a standard FBA carton
-// So instead of returning only the single max-qty box, we enumerate every valid
-// (orientation x long-axis-choice) combination up to the Amazon hard ceiling, tag each
-// with its tier, and rank by: qty desc -> tier asc (greener wins) -> CBM/pcs asc -> regularity.
-const TIER_THRESHOLDS = [60, 63.5, 91.44]; // cm, fixed reference bands (not user-editable)
-const TIER_LABELS = ['绿色推荐区(≤60cm)', '黄色可接受区(60-63.5cm)', '橙色FBA可用非优先(63.5-91.44cm)'];
-
-function tierOf(longestEdge){
-  if(longestEdge<=TIER_THRESHOLDS[0]) return 0;
-  if(longestEdge<=TIER_THRESHOLDS[1]) return 1;
-  if(longestEdge<=TIER_THRESHOLDS[2]) return 2;
-  return 3; // red, shouldn't occur since maxLong caps the search, kept for safety
-}
-
-function enumerateCartons(unitL, unitW, unitH, unitWeightKg, maxLong, maxSide, maxWeightKg, compressRatio){
-  compressRatio = compressRatio>0 && compressRatio<=1 ? compressRatio : 1;
-  const dims = [unitL, unitW, unitH];
-  const perms = [
-    [0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0],
-  ];
-  const qtyByWeight = unitWeightKg>0 ? Math.floor(maxWeightKg/unitWeightKg) : Infinity;
-  const candidates = [];
-  for(const [ia,ib,ic] of perms){
-    const a=dims[ia], b=dims[ib], c=dims[ic]; // a,b = base layer edges; c = stacking height edge
-    // compressRatio<1 models soft/compressible goods (rugs, bags) that factories
-    // interleave/nest across layers -- only the stacking axis compresses, since
-    // that's the axis real packing photos show being squeezed layer-to-layer.
-    const cEff = c*compressRatio;
-    for(const longAxis of ['a','b','c']){
-      const capA = longAxis==='a' ? maxLong : maxSide;
-      const capB = longAxis==='b' ? maxLong : maxSide;
-      const capC = longAxis==='c' ? maxLong : maxSide;
-      const nx = Math.max(1, Math.floor(capA/a));
-      const ny = Math.max(1, Math.floor(capB/b));
-      const perLayer = nx*ny;
-      const layersByHeight = Math.max(1, Math.floor(capC/cEff));
-      // NOTE: do not force layersByWeight to at least 1 -- if even a single layer's
-      // weight (perLayer * unit weight) already exceeds the carton weight cap, this
-      // orientation is genuinely infeasible and must be skipped, not rounded up to 1.
-      const layersByWeight = Math.floor(qtyByWeight/perLayer);
-      const layers = Math.min(layersByHeight, layersByWeight);
-      if(layers < 1) continue; // infeasible under the weight cap -- skip this combo
-      const qty = perLayer*layers;
-      const cartonL = nx*a, cartonW = ny*b, cartonH = layers*cEff;
-      const cube = cartonL*cartonW*cartonH;
-      const util = (qty*unitL*unitW*unitH)/cube;
-      const longestEdge = Math.max(cartonL, cartonW, cartonH);
-      const edges = [cartonL, cartonW, cartonH];
-      const meanEdge = (edges[0]+edges[1]+edges[2])/3;
-      const regularity = Math.sqrt(edges.reduce((s,e)=>s+(e-meanEdge)**2,0)/3); // stddev, smaller = more cube-like
-      candidates.push({ qty, cartonL, cartonW, cartonH, cube, util, longestEdge, tier: tierOf(longestEdge), cbmPerPcs: cube/qty/1e6, regularity });
-    }
-  }
-  if(candidates.length===0){
-    return { ranked: [], bestPerTier: [], top: { qty: 1, cartonL: unitL, cartonW: unitW, cartonH: unitH, util: 1, tier: tierOf(Math.max(unitL,unitW,unitH)), overWeight: unitWeightKg>maxWeightKg } };
-  }
-  // priority: 按你要求的优先级 -- 数量优先，同数量下绿区优先，再比CBM/pcs，再比箱型规整度
-  candidates.sort((x,y)=> y.qty-x.qty || x.tier-y.tier || x.cbmPerPcs-y.cbmPerPcs || x.regularity-y.regularity);
-  const top = candidates[0];
-  // best candidate within each tier (for the comparison table), independently ranked by the same rule
-  const bestPerTier = [0,1,2].map(t=>{
-    const inTier = candidates.filter(c=>c.tier===t);
-    if(inTier.length===0) return null;
-    inTier.sort((x,y)=> y.qty-x.qty || x.cbmPerPcs-y.cbmPerPcs || x.regularity-y.regularity);
-    return inTier[0];
-  });
-  return { ranked: candidates, bestPerTier, top };
-}
-
-function fmtCarton(c){
-  if(!c) return '—（该分区无可行方案）';
-  return `${c.cartonL.toFixed(1)}×${c.cartonW.toFixed(1)}×${c.cartonH.toFixed(1)}cm / ${c.qty}件 / ${c.cbmPerPcs.toFixed(5)}m³/件`;
-}
-
-document.getElementById('autoBoxBtn').addEventListener('click', ()=>{
-  const dimUnit = activeVal('dimUnitToggle');
-  const dimFactor = dimUnit === 'in' ? 2.54 : 1;
-  const uL = (+document.getElementById('L').value)*dimFactor;
-  const uW = (+document.getElementById('W').value)*dimFactor;
-  const uH = (+document.getElementById('H').value)*dimFactor;
-  const uWeightKg = getWeightG()/1000;
-  const maxLong = +document.getElementById('maxCtnLong').value;
-  const maxSide = +document.getElementById('maxCtnSide').value;
-  const maxWeight = +document.getElementById('maxCtnWeight').value;
-  const compressRatio = +document.getElementById('compressRatio').value;
-  const { bestPerTier, top } = enumerateCartons(uL, uW, uH, uWeightKg, maxLong, maxSide, maxWeight, compressRatio);
-  document.getElementById('boxL').value = top.cartonL.toFixed(1);
-  document.getElementById('boxW').value = top.cartonW.toFixed(1);
-  document.getElementById('boxH').value = top.cartonH.toFixed(1);
-  document.getElementById('ctnQty').value = top.qty;
-  const tierNames = ['绿色', '黄色', '橙色', '红色'];
-  document.getElementById('autoBoxHint').textContent =
-    `推荐方案（${tierNames[top.tier]}区）：外箱 ${top.cartonL.toFixed(1)}×${top.cartonW.toFixed(1)}×${top.cartonH.toFixed(1)}cm，可装 ${top.qty} 件，装箱利用率 ${((top.util||1)*100).toFixed(0)}%。排序优先级：装箱数量 > 最长边≤60cm优先 > CBM/件更低 > 箱型更规整。五个箱规/上限输入框仍可手动微调覆盖。`;
-  const rows = bestPerTier.map((c,i)=> `<tr><td>${TIER_LABELS[i]}</td><td>${fmtCarton(c)}</td></tr>`).join('');
-  document.getElementById('tierCompareTable').innerHTML =
-    `<table class="tier-table"><thead><tr><th>分区</th><th>该分区最优方案</th></tr></thead><tbody>${rows}</tbody></table>`;
-  calc();
-});
+// ---- manual carton packing ----
+// Excel口径：整箱尺寸=单品尺寸×对应方向装箱数+包装余量；
+// 整箱实重=单品重量×总装箱数+外箱/填充物重量；头程体积重在整箱三边基础上再各加1cm。
+const AMAZON_STD_CARTON_MAX_KG = 22.68; // 50 lb，按业务展示口径保留两位小数
+const AMAZON_MAX_CARTON_LONG_CM = 91.44;
+const AMAZON_MAX_CARTON_SIDE_CM = 63.5;
+const FREIGHT_OUTER_MARGIN_CM = 1;
 
 function lookupUtilSurcharge(weeks){
   for(const [lo,hi,std,ovz] of UTIL_SURCHARGE){ if(weeks>=lo && weeks<hi) return {std, ovz}; }
@@ -755,8 +700,19 @@ function calc(){
   const cat = activeVal('catToggle'), season = activeVal('seasonToggle');
   const referralPct = +refSel.value;
 
-  const boxL = +document.getElementById('boxL').value, boxW = +document.getElementById('boxW').value, boxH = +document.getElementById('boxH').value;
-  const ctnQty = +document.getElementById('ctnQty').value;
+  const countValues = ['packCountL','packCountW','packCountH'].map(id=>+document.getElementById(id).value);
+  const countsValid = countValues.every(v=>Number.isFinite(v) && v>=1 && Number.isInteger(v));
+  const [countL,countW,countH] = countValues.map(v=>Number.isFinite(v) && v>=1 ? Math.floor(v) : 1);
+  const packMarginL = Math.max(0, +document.getElementById('packMarginL').value || 0);
+  const packMarginW = Math.max(0, +document.getElementById('packMarginW').value || 0);
+  const packMarginH = Math.max(0, +document.getElementById('packMarginH').value || 0);
+  const boxL = L*countL+packMarginL;
+  const boxW = W*countW+packMarginW;
+  const boxH = H*countH+packMarginH;
+  const ctnQty = countL*countW*countH;
+  const cartonTareKg = Math.max(0, +document.getElementById('cartonTareKg').value || 0);
+  const requestedCartonWeightCap = +document.getElementById('maxCtnWeight').value;
+  const effectiveCartonWeightCap = Math.min(requestedCartonWeightCap || AMAZON_STD_CARTON_MAX_KG, AMAZON_STD_CARTON_MAX_KG);
   const freightMode = document.getElementById('freightMode').value;
 
   // ---- unit conversions ----
@@ -771,7 +727,11 @@ function calc(){
   for(const [t, wcap, dl, ds, dsh, girth, c] of SIZE_TIERS){
     if(R<=wcap && Lin<=dl && Win<=ds && Hin<=dsh && LplusG<=girth){ tier=t; tierCat=c; break; }
   }
-  const billWeight = (tier==="Small standard-size" || tier==="Extra-large 150+ lb") ? wtLb : R;
+  const unitUsesActualOnly = tier==="Small standard-size" || tier==="Extra-large 150+ lb";
+  const billWeight = unitUsesActualOnly ? wtLb : R;
+  const unitWeightBasis = unitUsesActualOnly
+    ? '按实重计费（该Size Tier规则）'
+    : Math.abs(wtLb-dimWeight)<1e-9 ? '实重＝体积重' : dimWeight>wtLb ? '按体积重计费' : '按实重计费';
 
   // ---- storage fee ----
   const volCf = (L*W*H)/28316.8;
@@ -805,16 +765,18 @@ function calc(){
   }
 
   // ---- freight cost (carton-level, split per unit) ----
-  // +2cm 包装余量，口径与xlsx主表AH/AJ列一致
-  const cartonVol6000 = ((boxL+2)*(boxW+2)*(boxH+2))/6000;   // sea dim-weight kg
-  const cartonVol5000 = ((boxL+2)*(boxW+2)*(boxH+2))/5000;   // express dim-weight kg
-  const cartonActualKg = (wtG*ctnQty)/1000;
+  // Excel口径：外箱三边各加1cm计算头程体积重；实重必须包含外箱及填充物重量。
+  const validCtnQty = ctnQty;
+  const cartonVol6000 = ((boxL+FREIGHT_OUTER_MARGIN_CM)*(boxW+FREIGHT_OUTER_MARGIN_CM)*(boxH+FREIGHT_OUTER_MARGIN_CM))/6000;
+  const cartonVol5000 = ((boxL+FREIGHT_OUTER_MARGIN_CM)*(boxW+FREIGHT_OUTER_MARGIN_CM)*(boxH+FREIGHT_OUTER_MARGIN_CM))/5000;
+  const productWeightKg = (wtG*validCtnQty)/1000;
+  const cartonActualKg = productWeightKg+cartonTareKg;
   const seaKg = Math.max(cartonVol6000, cartonActualKg);
   const expKg = Math.max(cartonVol5000, cartonActualKg);
 
   function freightUsdFor(mode){
     const kg = mode==='express' ? expKg : seaKg; // sea & fastsea both use the /6000 sea divisor
-    const rmbPerUnit = FREIGHT_RATE[mode] * kg / ctnQty;
+    const rmbPerUnit = FREIGHT_RATE[mode] * kg / validCtnQty;
     return rmbPerUnit / fx;
   }
 
@@ -829,13 +791,19 @@ function calc(){
     return { pct: profit/price, amt: profit, freightUsd };
   }
 
-  const results = { sea: margin('sea'), fastsea: margin('fastsea'), express: margin('express'), own: margin('own'), own_fast: margin('own_fast') };
+  const results = { default_sea: margin('default_sea'), sea: margin('sea'), fastsea: margin('fastsea'), express: margin('express'), own: margin('own'), own_fast: margin('own_fast') };
   const main = results[freightMode];
 
   // ---- render ----
   document.getElementById('tierBadge').textContent = tier;
   document.getElementById('tierSub').textContent =
     `计费重 ${billWeight.toFixed(3)} lb ・ 判断重 ${R.toFixed(3)} lb ・ 体积 ${volCf.toFixed(4)} ft³ ・ ${tierCat}`;
+  document.getElementById('unitActualWeight').textContent = `${wtLb.toFixed(3)} lb`;
+  document.getElementById('unitActualWeightKg').textContent = `${(wtG/1000).toFixed(3)} kg`;
+  document.getElementById('unitDimWeight').textContent = `${dimWeight.toFixed(3)} lb`;
+  document.getElementById('unitDimWeightKg').textContent = `${(dimWeight*0.45359237).toFixed(3)} kg`;
+  document.getElementById('unitBillWeight').textContent = `${billWeight.toFixed(3)} lb`;
+  document.getElementById('unitWeightBasis').textContent = unitWeightBasis;
 
   document.getElementById('rStorage').textContent = '$'+storageFee.toFixed(4);
   document.getElementById('rInbound').textContent = AGL_MODES.has(freightMode)
@@ -847,6 +815,49 @@ function calc(){
   document.getElementById('rCogsUsd').textContent = '$'+cogsUsd.toFixed(2);
   document.getElementById('rFreightUsd').textContent = '$'+main.freightUsd.toFixed(2);
 
+  const sortedBoxEdges = [boxL,boxW,boxH].sort((a,b)=>b-a);
+  const cartonLengthPlusGirth = sortedBoxEdges[0]+2*(sortedBoxEdges[1]+sortedBoxEdges[2]);
+  const currentVolumeKg = freightMode==='express' ? cartonVol5000 : cartonVol6000;
+  const currentBillableKg = Math.max(cartonActualKg,currentVolumeKg);
+  const volumeDivisor = freightMode==='express' ? 5000 : 6000;
+  const chargeBasis = Math.abs(cartonActualKg-currentVolumeKg)<1e-9
+    ? '实重＝体积重'
+    : currentVolumeKg>cartonActualKg ? '按体积重计费' : '按实重计费';
+
+  document.getElementById('pSingleL').textContent = `${L.toFixed(1)} cm`;
+  document.getElementById('pSingleW').textContent = `${W.toFixed(1)} cm`;
+  document.getElementById('pSingleH').textContent = `${H.toFixed(1)} cm`;
+  document.getElementById('pSingleWeight').textContent = `${(wtG/1000).toFixed(2)} kg`;
+  document.getElementById('pCartonL').textContent = `${boxL.toFixed(1)} cm`;
+  document.getElementById('pCartonW').textContent = `${boxW.toFixed(1)} cm`;
+  document.getElementById('pCartonH').textContent = `${boxH.toFixed(1)} cm`;
+  document.getElementById('pCartonWeight').textContent = `${cartonActualKg.toFixed(2)} kg`;
+  document.getElementById('pCartonRule').textContent = `${cartonLengthPlusGirth.toFixed(1)} cm`;
+  document.getElementById('pMethodL').textContent = `${countL} 个`;
+  document.getElementById('pMethodW').textContent = `${countW} 个`;
+  document.getElementById('pMethodH').textContent = `${countH} 层`;
+  document.getElementById('pPackQty').textContent = `${ctnQty} 个`;
+  document.getElementById('chargeActualKg').textContent = `${cartonActualKg.toFixed(2)} kg`;
+  document.getElementById('chargeActualLb').textContent = `${(cartonActualKg*2.20462262).toFixed(2)} LB`;
+  document.getElementById('chargeVolumeLabel').textContent = `体积重（/${volumeDivisor}）`;
+  document.getElementById('chargeVolumeKg').textContent = `${currentVolumeKg.toFixed(2)} kg`;
+  document.getElementById('chargeVolumeLb').textContent = `${(currentVolumeKg*2.20462262).toFixed(2)} LB`;
+  document.getElementById('chargeBillableKg').textContent = `${currentBillableKg.toFixed(2)} kg`;
+  document.getElementById('chargeBillableLb').textContent = `${(currentBillableKg*2.20462262).toFixed(2)} LB`;
+  document.getElementById('chargeBasis').textContent = chargeBasis;
+
+  const weightOk = cartonActualKg<=effectiveCartonWeightCap+1e-9;
+  const dimsOk = sortedBoxEdges[0]<=AMAZON_MAX_CARTON_LONG_CM+1e-9 && sortedBoxEdges[1]<=AMAZON_MAX_CARTON_SIDE_CM+1e-9 && sortedBoxEdges[2]<=AMAZON_MAX_CARTON_SIDE_CM+1e-9;
+  const cartonCheck = document.getElementById('cartonCheck');
+  const issues = [];
+  if(!weightOk) issues.push(`超重${(cartonActualKg-effectiveCartonWeightCap).toFixed(2)}kg`);
+  if(!dimsOk) issues.push('外箱尺寸超限');
+  if(!countsValid) issues.push('三个方向的装箱数量须为正整数');
+  if(requestedCartonWeightCap>AMAZON_STD_CARTON_MAX_KG+1e-9) issues.push('计划毛重上限不得超过22.68kg');
+  cartonCheck.classList.toggle('check-ok', issues.length===0);
+  cartonCheck.classList.toggle('check-bad', issues.length>0);
+  cartonCheck.textContent = `Amazon校验：${issues.length ? issues.join('、') : '合规'}｜标准多件外箱上限 91.44×63.5×63.5cm / 22.68kg`;
+
   function paintCard(mode, m){
     const pct = m.pct*100;
     document.getElementById('pct-'+mode).textContent = pct.toFixed(1)+'%';
@@ -856,7 +867,7 @@ function calc(){
     card.classList.add(pct>=15 ? 'good' : pct>=5 ? 'warn' : 'bad');
     if(mode===freightMode) card.classList.add('selected');
   }
-  ['sea','fastsea','express','own','own_fast'].forEach(mode=> paintCard(mode, results[mode]));
+  ['default_sea','sea','fastsea','express','own','own_fast'].forEach(mode=> paintCard(mode, results[mode]));
 }
 
 document.querySelectorAll('input, select').forEach(el=> el.addEventListener('input', calc));
