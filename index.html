@@ -1,4 +1,5 @@
 <title>FBA利润测算台</title>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -206,9 +207,9 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
 .margin-cards.three{ grid-template-columns:repeat(3,1fr); }
 .margin-cards.four{ grid-template-columns:repeat(2,1fr); }
 .margin-cards.five{ grid-template-columns:repeat(2,1fr); }
-.margin-cards.six{ grid-template-columns:repeat(2,1fr); }
-@media (max-width:480px){ .margin-cards.three, .margin-cards.four, .margin-cards.five, .margin-cards.six{ grid-template-columns:1fr; } }
-@media (min-width:640px){ .margin-cards.four{ grid-template-columns:repeat(4,1fr); } .margin-cards.five, .margin-cards.six{ grid-template-columns:repeat(3,1fr); } }
+.margin-cards.six, .margin-cards.seven{ grid-template-columns:repeat(2,1fr); }
+@media (max-width:480px){ .margin-cards.three, .margin-cards.four, .margin-cards.five, .margin-cards.six, .margin-cards.seven{ grid-template-columns:1fr; } }
+@media (min-width:640px){ .margin-cards.four{ grid-template-columns:repeat(4,1fr); } .margin-cards.five, .margin-cards.six, .margin-cards.seven{ grid-template-columns:repeat(3,1fr); } }
 .margin-card{
   border-radius:9px; padding:14px 12px 12px;
   border:1px solid var(--border);
@@ -341,9 +342,13 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
         </div>
         <div class="field-row two">
           <div><label>广告消耗占比 <span class="unit">%</span></label><input id="adpct" type="number" value="12" step="0.5"></div>
-          <div><label>预计库存周转 <span class="unit">周</span></label><input id="turnover" type="number" value="15" step="1"></div>
+          <div><label>仓储利用率 <span class="unit">周（FBA Dashboard）</span></label><input id="turnover" type="number" value="15" min="0" step="1"></div>
         </div>
-        <div class="small-hint">周转&lt;22周不产生仓储利用率附加费；超过22周会自动叠加，越慢越贵（详见下方说明）。</div>
+        <div class="field-row two">
+          <div><label>额外仓储利用率附加费</label><select id="storageSurchargeMode"><option value="no" selected>不适用 / 豁免</option><option value="yes">适用</option></select></div>
+          <div><label>库龄超过30天库存占比 <span class="unit">%</span></label><input id="storageAgedPct" type="number" value="100" min="0" max="100" step="1"></div>
+        </div>
+        <div class="small-hint">这里仅设置基础仓储费之外的额外附加费；选择“不适用 / 豁免”时，基础仓储费仍正常计算。附加费仅适用于满足Amazon条件的专业卖家，且只对库龄超过30天的库存计收；具体仓储利用率请以FBA Dashboard为准。</div>
         <div class="field-row two">
           <div><label>预计退货率 <span class="unit">%</span></label><input id="refundpct" type="number" value="0" step="0.5"></div>
           <div><label>Coupon费用率 <span class="unit">%</span></label><input id="couponpct" type="number" value="0" step="0.5"></div>
@@ -359,11 +364,17 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
           <div class="toggle" data-v="服装">服装</div>
           <div class="toggle" data-v="危险品">危险品/Hazmat</div>
         </div>
-        <label>配送周期</label>
+        <label>FBA配送费周期</label>
         <div class="toggle-row" id="seasonToggle">
           <div class="toggle active" data-v="非旺季">非旺季 (1/15–10/14)</div>
           <div class="toggle" data-v="旺季">旺季 (10/15–1/14)</div>
         </div>
+        <label>仓储计费月份</label>
+        <div class="toggle-row" id="storageSeasonToggle">
+          <div class="toggle active" data-v="offpeak">1–9月（仓储淡季）</div>
+          <div class="toggle" data-v="peak">10–12月（仓储旺季）</div>
+        </div>
+        <div class="small-hint">仓储费按自然月区分淡旺季，与配送费的旺季日期不同，因此需要单独选择。</div>
         <label>亚马逊佣金类目</label>
         <select id="referralCat"></select>
         <div class="field-row two" style="margin-top:12px;">
@@ -408,6 +419,7 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
               <option value="default_sea" selected>默认普船海派 · ¥12.5/kg</option>
               <option value="sea">普船海派 · ¥8.2/kg（大森林·美东经济卡派）</option>
               <option value="fastsea">快船 · ¥13.6/kg（大森林·华南ZIM美东卡派）</option>
+              <option value="west_air">美西空运 · ¥60/kg（体积重÷6000）</option>
               <option value="express">快递 · ¥97/kg（燕文头程专线，顶档价）</option>
               <option value="own">公司自有-快船海卡 · ¥8/kg（AGL-美西快船海卡，免入库配置费）</option>
               <option value="own_fast">公司自有-普船海派 · ¥14/kg（美西普船海派，免入库配置费）</option>
@@ -442,7 +454,9 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
         <div class="tier-badge" id="tierBadge">—</div>
         <div class="tier-sub" id="tierSub">—</div>
 
-        <div class="stat-line"><span class="k">仓储费（含利用率附加费）</span><span class="v" id="rStorage">$0.00</span></div>
+        <div class="stat-line"><span class="k">仓储基础费率</span><span class="v" id="rStorageBaseRate">$0.00/ft³</span></div>
+        <div class="stat-line"><span class="k">额外仓储利用率附加费</span><span class="v" id="rStorageSurchargeRate">$0.00/ft³</span></div>
+        <div class="stat-line"><span class="k">仓储费（单件/月）</span><span class="v" id="rStorage">$0.00</span></div>
         <div class="stat-line"><span class="k">入库配置服务费</span><span class="v" id="rInbound">$0.00</span></div>
         <div class="stat-line"><span class="k">订单处理/配送费（含燃油附加）</span><span class="v" id="rOrder">$0.00</span></div>
         <div class="total-line"><span>FBA 费用合计</span><span class="v" id="rFbaTotal">$0.00</span></div>
@@ -452,7 +466,7 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
         <div class="stat-line"><span class="k">采购成本（折USD）</span><span class="v" id="rCogsUsd">$0.00</span></div>
         <div class="stat-line"><span class="k">头程运费（折USD）</span><span class="v" id="rFreightUsd">$0.00</span></div>
 
-        <div class="margin-cards six">
+        <div class="margin-cards seven">
           <div class="margin-card" id="card-default_sea">
             <div class="label">默认普船海派</div>
             <div class="pct" id="pct-default_sea">0.0%</div>
@@ -467,6 +481,11 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
             <div class="label">快船</div>
             <div class="pct" id="pct-fastsea">0.0%</div>
             <div class="amt" id="amt-fastsea">净利润 $0.00 / 件</div>
+          </div>
+          <div class="margin-card" id="card-west_air">
+            <div class="label">美西空运</div>
+            <div class="pct" id="pct-west_air">0.0%</div>
+            <div class="amt" id="amt-west_air">净利润 $0.00 / 件</div>
           </div>
           <div class="margin-card" id="card-express">
             <div class="label">快递</div>
@@ -486,7 +505,7 @@ hr.rule{ border:none; border-top:1px solid var(--border); margin:14px 0; }
         </div>
 
         <div class="foot-note">
-          数据口径：<b>2026-01-15</b>起生效的美国站FBA费率（非旺季区间），已按<b>1st-zzz.github.io</b>与<b>ricky940910.github.io</b>两个独立工具三产品交叉验证一致。入库配置费按东西部区间中点估算；Extra-large尺寸入库费官方数据缺失，按0处理。<b>公司自有-快船海卡/普船海派两个AGL渠道由亚马逊全球物流统一入仓，不产生独立的入库配置服务费</b>，其余渠道(默认普船海派/普船海派/快船/快递)均需计入。仓储基础费率为淡旺季加权年度均值。<b>Coupon费用率</b>按比例折减到手售价后再计佣金；<b>预计退货率</b>按整单利润的期望损失折减（简化估算，未拆分退货处理费/FBA退款手续费等细项）。
+          数据口径：<b>2026-01-15</b>起生效的美国站FBA配送费，已按<b>1st-zzz.github.io</b>与<b>ricky940910.github.io</b>两个独立工具三产品交叉验证一致。仓储基础费按Amazon官方自然月口径计算：非危险品Standard-size为1–9月$0.78/ft³、10–12月$2.40/ft³，Oversize为$0.56/$1.40；危险品Standard-size为$0.99/$3.63，Oversize为$0.78/$2.43。仓储利用率附加费仅在选择“适用”时，按库龄超过30天库存占比计入。入库配置费按东西部区间中点估算；Extra-large尺寸入库费官方数据缺失，按0处理。<b>美西空运按¥60/kg、体积重÷6000估算</b>。<b>公司自有-快船海卡/普船海派两个AGL渠道由亚马逊全球物流统一入仓，不产生独立的入库配置服务费</b>，其余渠道均需计入。<b>Coupon费用率</b>按比例折减到手售价后再计佣金；<b>预计退货率</b>按整单利润的期望损失折减（简化估算，未拆分退货处理费/FBA退款手续费等细项）。
         </div>
       </div>
     </div>
@@ -572,7 +591,16 @@ const FEES = {
   "危险品|旺季": [[3.74,4.63,4.89],[3.80,4.73,4.99],[3.88,4.77,5.03],[3.98,4.86,5.12],[4.10,5.01,5.27],[4.14,5.10,5.36],[4.25,5.24,5.50],[4.32,5.33,5.59],[4.32,5.14,5.40],[4.56,5.38,5.64],[4.82,5.64,5.90],[5.04,5.86,6.12],[5.51,6.33,6.59],[5.91,6.73,6.99],[6.08,6.90,7.16],[6.24,7.06,7.32],[6.33,7.15,7.41],[6.53,7.35,7.61],[6.70,7.52,7.78],[7.12,7.94,8.20],[7.51,8.33,8.59],[9.06,9.83,9.83],[10.86,11.63,11.63],[31.71,32.48,32.48],[43.86,44.63,44.63],[64.04,64.81,64.81],[230.84,231.61,231.61]],
 };
 
-const STORAGE_BASE = { Standard: 1.185, Oversize: 0.77 }; // blended annual $/ft3/month
+// Amazon US monthly inventory storage rates, effective through 2027-01-31.
+// Storage peak season uses calendar months (Oct-Dec), which differs from fulfillment peak dates.
+const STORAGE_BASE = {
+  offpeak: { Standard: 0.78, Oversize: 0.56 },
+  peak: { Standard: 2.40, Oversize: 1.40 },
+};
+const DANGEROUS_STORAGE_BASE = {
+  offpeak: { Standard: 0.99, Oversize: 0.78 },
+  peak: { Standard: 3.63, Oversize: 2.43 },
+};
 const UTIL_SURCHARGE = [ [0,22,0,0],[22,28,0.44,0.23],[28,36,0.76,0.46],[36,44,1.16,0.63],[44,52,1.58,0.76],[52,9999,1.88,1.26] ];
 
 const REFERRAL_CATS = [
@@ -591,7 +619,7 @@ const REFERRAL_CATS = [
   ["其他/默认(Everything Else)", 0.15],
 ];
 
-const FREIGHT_RATE = { default_sea: 12.5, sea: 8.2, fastsea: 13.6, express: 97, own: 8, own_fast: 14 }; // RMB/kg -- default_sea: 默认普船海派；own: 公司自有·AGL-美西快船海卡；own_fast: 公司自有·美西普船海派(2026年时效表)
+const FREIGHT_RATE = { default_sea: 12.5, sea: 8.2, fastsea: 13.6, west_air: 60, express: 97, own: 8, own_fast: 14 }; // RMB/kg -- west_air: 美西空运；own: 公司自有·AGL-美西快船海卡；own_fast: 公司自有·美西普船海派(2026年时效表)
 
 // ---- populate referral dropdown ----
 const refSel = document.getElementById('referralCat');
@@ -613,7 +641,7 @@ function wireToggle(id){
     });
   });
 }
-wireToggle('catToggle'); wireToggle('seasonToggle');
+wireToggle('catToggle'); wireToggle('seasonToggle'); wireToggle('storageSeasonToggle');
 function activeVal(id){ return document.getElementById(id).querySelector('.toggle.active').dataset.v; }
 
 // ---- dimension unit toggle (cm / in): converts the L/W/H field values in place ----
@@ -693,11 +721,14 @@ function calc(){
   const cogsRmb = +document.getElementById('cogs').value;
   const fx = +document.getElementById('fx').value;
   const adPct = (+document.getElementById('adpct').value)/100;
-  const turnover = +document.getElementById('turnover').value;
+  const turnover = Math.max(0, +document.getElementById('turnover').value || 0);
+  const storageSurchargeMode = document.getElementById('storageSurchargeMode').value;
+  const storageAgedPct = Math.min(1, Math.max(0, (+document.getElementById('storageAgedPct').value || 0)/100));
   const fuelPct = (+document.getElementById('fuel').value)/100;
   const refundPct = (+document.getElementById('refundpct').value)/100;
   const couponPct = (+document.getElementById('couponpct').value)/100;
   const cat = activeVal('catToggle'), season = activeVal('seasonToggle');
+  const storageSeason = activeVal('storageSeasonToggle');
   const referralPct = +refSel.value;
 
   const countValues = ['packCountL','packCountW','packCountH'].map(id=>+document.getElementById(id).value);
@@ -735,9 +766,16 @@ function calc(){
 
   // ---- storage fee ----
   const volCf = (L*W*H)/28316.8;
+  const dangerousStorage = cat === '危险品';
+  const storageRateTable = dangerousStorage ? DANGEROUS_STORAGE_BASE : STORAGE_BASE;
+  const storageBaseRate = storageRateTable[storageSeason][tierCat];
   const surcharge = lookupUtilSurcharge(turnover);
-  const baseRate = STORAGE_BASE[tierCat] + (tierCat==="Standard" ? surcharge.std : surcharge.ovz);
-  const storageFee = volCf * baseRate;
+  const rawStorageSurchargeRate = tierCat==="Standard" ? surcharge.std : surcharge.ovz;
+  const storageSurchargeRate = !dangerousStorage && storageSurchargeMode==='yes'
+    ? rawStorageSurchargeRate * storageAgedPct
+    : 0;
+  const storageEffectiveRate = storageBaseRate + storageSurchargeRate;
+  const storageFee = volCf * storageEffectiveRate;
 
   // ---- inbound placement fee ----
   let inboundFee = 0;
@@ -775,7 +813,7 @@ function calc(){
   const expKg = Math.max(cartonVol5000, cartonActualKg);
 
   function freightUsdFor(mode){
-    const kg = mode==='express' ? expKg : seaKg; // sea & fastsea both use the /6000 sea divisor
+    const kg = mode==='express' ? expKg : seaKg; // 海运、快船和美西空运按/6000；快递按/5000
     const rmbPerUnit = FREIGHT_RATE[mode] * kg / validCtnQty;
     return rmbPerUnit / fx;
   }
@@ -791,7 +829,7 @@ function calc(){
     return { pct: profit/price, amt: profit, freightUsd };
   }
 
-  const results = { default_sea: margin('default_sea'), sea: margin('sea'), fastsea: margin('fastsea'), express: margin('express'), own: margin('own'), own_fast: margin('own_fast') };
+  const results = { default_sea: margin('default_sea'), sea: margin('sea'), fastsea: margin('fastsea'), west_air: margin('west_air'), express: margin('express'), own: margin('own'), own_fast: margin('own_fast') };
   const main = results[freightMode];
 
   // ---- render ----
@@ -805,6 +843,13 @@ function calc(){
   document.getElementById('unitBillWeight').textContent = `${billWeight.toFixed(3)} lb`;
   document.getElementById('unitWeightBasis').textContent = unitWeightBasis;
 
+  const storagePeriodLabel = storageSeason==='peak' ? '10–12月' : '1–9月';
+  document.getElementById('rStorageBaseRate').textContent = `$${storageBaseRate.toFixed(2)}/ft³ · ${storagePeriodLabel}`;
+  document.getElementById('rStorageSurchargeRate').textContent = dangerousStorage
+    ? '$0.00/ft³（危险品独立费率）'
+    : storageSurchargeMode==='yes'
+      ? `$${storageSurchargeRate.toFixed(2)}/ft³（>30天占比${(storageAgedPct*100).toFixed(0)}%）`
+      : '$0.00/ft³（不适用/豁免，仅计基础仓储费）';
   document.getElementById('rStorage').textContent = '$'+storageFee.toFixed(4);
   document.getElementById('rInbound').textContent = AGL_MODES.has(freightMode)
     ? '$0.00（AGL渠道由亚马逊统一入仓，免收）'
@@ -867,7 +912,7 @@ function calc(){
     card.classList.add(pct>=15 ? 'good' : pct>=5 ? 'warn' : 'bad');
     if(mode===freightMode) card.classList.add('selected');
   }
-  ['default_sea','sea','fastsea','express','own','own_fast'].forEach(mode=> paintCard(mode, results[mode]));
+  ['default_sea','sea','fastsea','west_air','express','own','own_fast'].forEach(mode=> paintCard(mode, results[mode]));
 }
 
 document.querySelectorAll('input, select').forEach(el=> el.addEventListener('input', calc));
